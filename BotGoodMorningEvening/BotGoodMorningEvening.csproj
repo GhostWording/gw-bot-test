@@ -168,6 +168,10 @@
     <Compile Include="Migrations\201705101256486_Conv.Designer.cs">
       <DependentUpon>201705101256486_Conv.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201705151206350_Add cards cache storage.cs" />
+    <Compile Include="Migrations\201705151206350_Add cards cache storage.Designer.cs">
+      <DependentUpon>201705151206350_Add cards cache storage.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Card.cs" />
     <Compile Include="Models\Command.cs" />
@@ -205,6 +209,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201705101256486_Conv.resx">
       <DependentUpon>201705101256486_Conv.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201705151206350_Add cards cache storage.resx">
+      <DependentUpon>201705151206350_Add cards cache storage.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

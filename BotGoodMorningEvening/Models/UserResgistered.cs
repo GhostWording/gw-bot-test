@@ -39,5 +39,7 @@ namespace BotGoodMorningEvening.Models
         public string conversationId { get; set; }
 
         public string conversationName { get; set; }
+
+        public string CardsCache { get; set; }
     }
 }

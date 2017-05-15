@@ -6,19 +6,19 @@ using BotGoodMorningEvening.Helpers;
 using BotGoodMorningEvening.Models;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using Newtonsoft.Json;
 
 namespace BotGoodMorningEvening.Dialogs
 {
     [Serializable]
     public class RootDialog : IDialog<object>
     {
-        private readonly Dictionary<string, Tuple<int, int, List<Card>>> cardListReference; // (intentionId, (hashcode, index, cards))
+        private Dictionary<string, Tuple<int, int, List<Card>>> cardListReference; // (intentionId, (hashcode, index, cards))
 
         private readonly string startIntentionId;
 
         public RootDialog(Guid userId, string intentionId = null)
         {
-            cardListReference = new Dictionary<string, Tuple<int, int, List<Card>>>();
             startIntentionId = intentionId;
             UserId = userId;
         }
@@ -194,42 +194,47 @@ namespace BotGoodMorningEvening.Dialogs
             Card newCard;
 
             // TODO: Get the cache out of dialog
-            // var stateClient = context.Activity.GetStateClient();
-            // var userData = await stateClient.BotState.GetUserDataAsync(context.Activity.ChannelId, context.Activity.From.Id);
-            // cardListReference = userData.GetProperty<Dictionary<string, Tuple<int, int, List<Card>>>>("CardListReference") ??
-            //                    new Dictionary<string, Tuple<int, int, List<Card>>>();
-
-            // Get another card
-            if (cardListReference.ContainsKey(intentionId))
+            using (var db = new UserContext())
             {
-                var entry = cardListReference[intentionId];
-                var newIndex = entry.Item2 + 1;
-                if (newIndex < entry.Item3.Count)
+                // Get the cache
+                var user = db.UserResgistereds.FirstOrDefault(u => u.UserId == context.Activity.From.Id);
+                cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
+
+                // Get another card
+                if (cardListReference.ContainsKey(intentionId))
                 {
-                    newCard = entry.Item3[newIndex];
-                    cardListReference[intentionId] =
-                        new Tuple<int, int, List<Card>>(entry.Item1, newIndex, entry.Item3);
+                    var entry = cardListReference[intentionId];
+                    var newIndex = entry.Item2 + 1;
+                    if (newIndex < entry.Item3.Count)
+                    {
+                        newCard = entry.Item3[newIndex];
+                        cardListReference[intentionId] =
+                            new Tuple<int, int, List<Card>>(entry.Item1, newIndex, entry.Item3);
+                    }
+                    else
+                    {
+                        var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, entry.Item1);
+                        cardListReference[intentionId] = new Tuple<int, int, List<Card>>(hashcode, 0, cards);
+                        newCard = cards[0];
+                    }
                 }
                 else
                 {
-                    var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, entry.Item1);
-                    cardListReference[intentionId] = new Tuple<int, int, List<Card>>(hashcode, 0, cards);
+                    var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, 0);
+                    cardListReference.Add(intentionId, new Tuple<int, int, List<Card>>(hashcode, 0, cards));
                     newCard = cards[0];
                 }
-            }
-            else
-            {
-                var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, 0);
-                cardListReference.Add(intentionId, new Tuple<int, int, List<Card>>(hashcode, 0, cards));
-                newCard = cards[0];
-            }
 
-            // Send the card
-            await SendCard(context, newCard);
+                // Send the card
+                await SendCard(context, newCard);
 
-            // TODO: Save the cache out of dialog
-            // userData.SetProperty("CardListReference", cardListReference);
-            // await stateClient.BotState.SetUserDataAsync(context.Activity.ChannelId, context.Activity.From.Id, userData);
+                // Save the cache
+                if (user != null)
+                {
+                    user.CardsCache = JsonConvert.SerializeObject(cardListReference);
+                    db.SaveChanges();
+                }
+            }
 
             // Wait for a response
             context.Wait(State1);
@@ -261,7 +266,7 @@ namespace BotGoodMorningEvening.Dialogs
 
                 // Image
                 var imageMessage = context.MakeMessage();
-                imageMessage.Attachments.Add(new Attachment {ContentType = "image/jpg", ContentUrl = card.ImageLink});
+                imageMessage.Attachments.Add(new Attachment { ContentType = "image/jpg", ContentUrl = card.ImageLink });
                 await context.PostAsync(imageMessage);
 
                 // Buttons
