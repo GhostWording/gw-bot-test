@@ -277,7 +277,7 @@ namespace BotGoodMorningEvening.Dialogs
 
                 if (reply.ChannelId.Equals("facebook", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    reply.Text = card.Content;
+                    reply.Text = card.Content.Replace("\n", "<br/>");
                     var channelData = new FacebookChannelData
                     {
                         QuickReplies = new[]
