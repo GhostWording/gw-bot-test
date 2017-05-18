@@ -24,9 +24,9 @@ namespace BotGoodMorningEvening.Controllers
         {
             if (activity.Type == ActivityTypes.Message)
             {
-                var timezone = findTimeStamp(activity.From.Id);
+                var timezone = findTimeZone(activity.From.Id);
                 var userId = AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
-                    activity.Recipient.Name, activity.ServiceUrl, activity.LocalTimestamp?.Offset.Hours,
+                    activity.Recipient.Name, activity.ServiceUrl, timezone,
                     activity.ChannelId);
                 await Conversation.SendAsync(activity, () => new RootDialog(userId));
             }
@@ -38,22 +38,27 @@ namespace BotGoodMorningEvening.Controllers
             return response;
         }
 
-        private static int? findTimeStamp(string userId)
+        private static int? findTimeZone(string userId)
         {
-            int? timezone;
+            int timezone;
             try
             {
                 var pageAccessToken = ConfigurationManager.AppSettings["PageAccessToken"];
                 var fbclient = new FacebookClient(pageAccessToken);
                 dynamic result = fbclient.Get($"https://graph.facebook.com/v2.6/{userId}?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token={pageAccessToken}");
-                timezone = result.ContainsKey("timezone") ? result["timezone"] : null;
-            }
-            catch (Exception)
-            {
-                timezone = null;
-            }
+                var gmt = result.ContainsKey("timezone") ? result["timezone"] : null;
 
-            return timezone;
+                if (gmt != null && gmt < int.MaxValue)
+                    timezone = (int)gmt;
+                else
+                    return null;
+
+                return timezone;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
 
 
