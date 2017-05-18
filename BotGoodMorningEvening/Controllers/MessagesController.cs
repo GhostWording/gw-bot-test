@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using BotGoodMorningEvening.Dialogs;
 using BotGoodMorningEvening.Models;
+using Facebook;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 
@@ -22,6 +24,7 @@ namespace BotGoodMorningEvening.Controllers
         {
             if (activity.Type == ActivityTypes.Message)
             {
+                var timezone = findTimeStamp(activity.From.Id);
                 var userId = AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
                     activity.Recipient.Name, activity.ServiceUrl, activity.LocalTimestamp?.Offset.Hours,
                     activity.ChannelId);
@@ -34,6 +37,25 @@ namespace BotGoodMorningEvening.Controllers
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
         }
+
+        private static int? findTimeStamp(string userId)
+        {
+            int? timezone;
+            try
+            {
+                var pageAccessToken = ConfigurationManager.AppSettings["PageAccessToken"];
+                var fbclient = new FacebookClient(pageAccessToken);
+                dynamic result = fbclient.Get($"https://graph.facebook.com/v2.6/{userId}?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token={pageAccessToken}");
+                timezone = result.ContainsKey("timezone") ? result["timezone"] : null;
+            }
+            catch (Exception)
+            {
+                timezone = null;
+            }
+
+            return timezone;
+        }
+
 
         private static Guid AddOrUpdateUser(string userId, string userName, string botId, string botName,
             string serviceUrl, int? gmtPlus, string channelId)
