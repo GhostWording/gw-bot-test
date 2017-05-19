@@ -62,6 +62,7 @@ namespace BotGoodMorningEvening.Controllers
         }
 
 
+
         private static Guid AddOrUpdateUser(string userId, string userName, string botId, string botName,
             string serviceUrl, int? gmtPlus, string channelId)
         {
