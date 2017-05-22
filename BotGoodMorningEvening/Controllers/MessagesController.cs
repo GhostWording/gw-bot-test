@@ -10,6 +10,7 @@ using BotGoodMorningEvening.Models;
 using Facebook;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
+using BotGoodMorningEvening.Helpers;
 
 namespace BotGoodMorningEvening.Controllers
 {
@@ -25,10 +26,15 @@ namespace BotGoodMorningEvening.Controllers
             if (activity.Type == ActivityTypes.Message)
             {
                 var timezone = findTimeZone(activity.From.Id);
-                var userId = AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
+                //var userId = AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
+                //    activity.Recipient.Name, activity.ServiceUrl, timezone,
+                //    activity.ChannelId);
+
+                UserStorageManager.AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
                     activity.Recipient.Name, activity.ServiceUrl, timezone,
                     activity.ChannelId);
-                await Conversation.SendAsync(activity, () => new RootDialog(userId));
+
+                await Conversation.SendAsync(activity, () => new RootDialog(activity.From.Id));
             }
             else
             {

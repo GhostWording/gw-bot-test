@@ -19,27 +19,45 @@ namespace BotGoodMorningEvening.Controllers
         [HttpPost]
         public async Task WakeUpConversation()
         {
-            using (var db = new UserContext())
-            {
-                // Send good morning
-                var morningUsers = from u in db.UserResgistereds
-                                   where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 12
-                                   select u;
+            var users = UserStorageManager.GetUsers();
+            // Send good morning
+            var morningUsers = from u in users
+                               where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 12
+                               select u;
 
-                var intentionId = CardHelper.GoodMorningIntentionId;
-                await SendGood(morningUsers.ToList(), intentionId);
+            var intentionId = CardHelper.GoodMorningIntentionId;
+            await SendGood(morningUsers.ToList(), intentionId);
 
-                // Send good evening
-                var eveningUsers = from u in db.UserResgistereds
-                                   where DateTime.UtcNow.Hour + u.Gmtplus >= 12 && DateTime.UtcNow.Hour + u.Gmtplus < 22
-                                   select u;
+            // Send good evening
+            var eveningUsers = from u in users
+                               where DateTime.UtcNow.Hour + u.Gmtplus >= 12 && DateTime.UtcNow.Hour + u.Gmtplus < 22
+                               select u;
 
-                intentionId = CardHelper.GoodEveningIntentionId;
-                await SendGood(eveningUsers.ToList(), intentionId);
-            }
+            intentionId = CardHelper.GoodEveningIntentionId;
+            await SendGood(eveningUsers.ToList(), intentionId);
+
+            //using (var db = new UserContext())
+            //{
+            //    // Send good morning
+            //    var morningUsers = from u in db.UserResgistereds
+            //                       where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 12
+            //                       select u;
+
+            //    var intentionId = CardHelper.GoodMorningIntentionId;
+            //    await SendGood(morningUsers.ToList(), intentionId);
+
+            //    // Send good evening
+            //    var eveningUsers = from u in db.UserResgistereds
+            //                       where DateTime.UtcNow.Hour + u.Gmtplus >= 12 && DateTime.UtcNow.Hour + u.Gmtplus < 22
+            //                       select u;
+
+            //    intentionId = CardHelper.GoodEveningIntentionId;
+            //    await SendGood(eveningUsers.ToList(), intentionId);
+            //}
         }
 
-        private static async Task SendGood(List<UserResgistered> results, string intentionId)
+        //private static async Task SendGood(List<UserResgistered> results, string intentionId)
+        private static async Task SendGood(List<UserEntity> results, string intentionId)
         {
             foreach (var item in results)
             {
@@ -47,7 +65,6 @@ namespace BotGoodMorningEvening.Controllers
                 {
                     try
                     {
-
                         var message = ResumptionCookie.GZipDeserialize(item.ResumptionCookie).GetMessage();
 
                         using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, message))
@@ -60,9 +77,7 @@ namespace BotGoodMorningEvening.Controllers
 
                             //interrupt the stack. This means that we're stopping whatever conversation that is currently happening with the user
                             //Then adding this stack to run and once it's finished, we will be back to the original conversation
-                            Guid userId;
-                            Guid.TryParse(item.UserId, out userId);
-                            var dialog = new RootDialog(userId, intentionId);
+                            var dialog = new RootDialog(item.UserId, intentionId);
                             task.Call(dialog.Void<object, IMessageActivity>(), null);
 
                             await task.PollAsync(CancellationToken.None);

@@ -17,13 +17,13 @@ namespace BotGoodMorningEvening.Dialogs
 
         private readonly string startIntentionId;
 
-        public RootDialog(Guid userId, string intentionId = null)
+        public RootDialog(string userId, string intentionId = null)
         {
             startIntentionId = intentionId;
             UserId = userId;
         }
 
-        public Guid UserId { get; }
+        public string UserId { get; }
 
         public async Task StartAsync(IDialogContext context)
         {
@@ -42,16 +42,21 @@ namespace BotGoodMorningEvening.Dialogs
 
                 //var resumptionCookie = JsonConvert.SerializeObject(new ConversationReference(context.Activity.Id));
                 var resumptionCookie = new ResumptionCookie(message).GZipSerialize();
-                using (var db = new UserContext())
-                {
-                    var user = db.UserResgistereds.Find(UserId);
-                    if (user != null)
-                    {
-                        user.ChannelId = context.Activity.ChannelId;
-                        user.ResumptionCookie = resumptionCookie;
-                        db.SaveChanges();
-                    }
-                }
+                var currentuser = UserStorageManager.GetUser(this.UserId);
+                if (currentuser != null)
+                    currentuser.ResumptionCookie = resumptionCookie;
+                UserStorageManager.UpdateUser(currentuser);
+
+                //using (var db = new UserContext())
+                //{
+                //    var user = db.UserResgistereds.Find(UserId);
+                //    if (user != null)
+                //    {
+                //        user.ChannelId = context.Activity.ChannelId;
+                //        user.ResumptionCookie = resumptionCookie;
+                //        db.SaveChanges();
+                //    }
+                //}
 
                 var text = message.Text ?? "Good Morning";
                 // Find a card
@@ -194,10 +199,12 @@ namespace BotGoodMorningEvening.Dialogs
             Card newCard;
 
             // TODO: Get the cache out of dialog
-            using (var db = new UserContext())
-            {
+            //using (var db = new UserContext())
+            //{
                 // Get the cache
-                var user = db.UserResgistereds.FirstOrDefault(u => u.UserId == context.Activity.From.Id);
+                //var user = db.UserResgistereds.FirstOrDefault(u => u.UserId == context.Activity.From.Id);
+                var user = UserStorageManager.GetUser(context.Activity.From.Id);
+
                 cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
 
                 // Get another card
@@ -232,9 +239,10 @@ namespace BotGoodMorningEvening.Dialogs
                 if (user != null)
                 {
                     user.CardsCache = JsonConvert.SerializeObject(cardListReference);
-                    db.SaveChanges();
+                    UserStorageManager.UpdateUser(user);
+                    //db.SaveChanges();
                 }
-            }
+            //}
 
             // Wait for a response
             context.Wait(State1);
