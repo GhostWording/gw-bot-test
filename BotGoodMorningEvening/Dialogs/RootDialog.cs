@@ -40,13 +40,7 @@ namespace BotGoodMorningEvening.Dialogs
                 // Retrieve conversation info
                 var message = await argument;
 
-                //var resumptionCookie = JsonConvert.SerializeObject(new ConversationReference(context.Activity.Id));
-                var resumptionCookie = new ResumptionCookie(message).GZipSerialize();
-                var currentuser = UserStorageManager.GetUser(this.UserId);
-                if (currentuser != null)
-                    currentuser.ResumptionCookie = resumptionCookie;
-
-                UserStorageManager.UpdateUser(currentuser);
+                UpdateResumeCookie(message);
 
                 var text = message.Text ?? "Good Morning";
                 // Find a card
@@ -55,6 +49,25 @@ namespace BotGoodMorningEvening.Dialogs
             catch (Exception)
             {
                 await context.PostAsync("MessageReceived error");
+            }
+        }
+
+        private void UpdateResumeCookie(IMessageActivity message)
+        {
+            try
+            {
+                var resumptionCookie = new ResumptionCookie(message).GZipSerialize();
+                //var resumptionCookie = JsonConvert.SerializeObject(new ConversationReference(context.Activity.Id));
+                var currentuser = UserStorageManager.GetUser(this.UserId);
+                if (currentuser != null)
+                {
+                    currentuser.ResumptionCookie = resumptionCookie;
+                    UserStorageManager.UpdateUser(currentuser);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -89,11 +102,11 @@ namespace BotGoodMorningEvening.Dialogs
                         else
                         {
                             await context.PostAsync("Something is going wrong...");
-                            context.Wait(MessageReceivedAsync);
                         }
                     }
                     else
                     {
+                        this.UpdateResumeCookie(message);
                         await FindAndSendCard(context, message.Text);
                     }
                 }

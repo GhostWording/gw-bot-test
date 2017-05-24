@@ -22,7 +22,7 @@ namespace BotGoodMorningEvening.Controllers
             var users = UserStorageManager.GetUsers();
             // Send good morning
             var morningUsers = from u in users
-                               where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 12
+                               where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 9
                                select u;
 
             var intentionId = CardHelper.GoodMorningIntentionId;
@@ -30,30 +30,11 @@ namespace BotGoodMorningEvening.Controllers
 
             // Send good evening
             var eveningUsers = from u in users
-                               where DateTime.UtcNow.Hour + u.Gmtplus >= 12 && DateTime.UtcNow.Hour + u.Gmtplus < 22
+                               where DateTime.UtcNow.Hour + u.Gmtplus >= 19 && DateTime.UtcNow.Hour + u.Gmtplus < 20
                                select u;
 
             intentionId = CardHelper.GoodEveningIntentionId;
             await SendGood(eveningUsers.ToList(), intentionId);
-
-            //using (var db = new UserContext())
-            //{
-            //    // Send good morning
-            //    var morningUsers = from u in db.UserResgistereds
-            //                       where DateTime.UtcNow.Hour + u.Gmtplus >= 8 && DateTime.UtcNow.Hour + u.Gmtplus < 12
-            //                       select u;
-
-            //    var intentionId = CardHelper.GoodMorningIntentionId;
-            //    await SendGood(morningUsers.ToList(), intentionId);
-
-            //    // Send good evening
-            //    var eveningUsers = from u in db.UserResgistereds
-            //                       where DateTime.UtcNow.Hour + u.Gmtplus >= 12 && DateTime.UtcNow.Hour + u.Gmtplus < 22
-            //                       select u;
-
-            //    intentionId = CardHelper.GoodEveningIntentionId;
-            //    await SendGood(eveningUsers.ToList(), intentionId);
-            //}
         }
 
         //private static async Task SendGood(List<UserResgistered> results, string intentionId)
