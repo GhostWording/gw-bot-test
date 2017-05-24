@@ -37,18 +37,39 @@ namespace BotGoodMorningEvening.Helpers
         {
             try
             {
-                // Create a customer entity.
-                UserEntity currentUser = new UserEntity(botGmePartitionKey,userId);
-                currentUser.BotId = botId;
-                currentUser.BotName = botName;
-                currentUser.ServiceURL = serviceUrl;
-                currentUser.Gmtplus = gmtPlus;
-                currentUser.ChannelId = channelId;
-                currentUser.CardsCache = string.Empty;
+                //if current user exist in table storage, we update user's data esle we create the new user
+                var currentUser = GetUser(userId);
+                if(currentUser == null)
+                {
+                    // Create a user entity.
+                    currentUser = new UserEntity(botGmePartitionKey, userId);
+                    currentUser.UserId = userId;
+                    currentUser.UserName = userName;
+                    currentUser.BotId = botId;
+                    currentUser.BotName = botName;
+                    currentUser.ServiceURL = serviceUrl;
+                    currentUser.Gmtplus = gmtPlus;
+                    currentUser.ChannelId = channelId;
+                    currentUser.CardsCache = string.Empty;
+                    currentUser.ResumptionCookie = string.Empty;
 
-                // insert user or replace
-                TableOperation insertOrReplaceOperation = TableOperation.InsertOrReplace(currentUser);
-                UserTable.Execute(insertOrReplaceOperation);
+                    // insert user or replace
+                    TableOperation insertOperation = TableOperation.Insert(currentUser);
+                    UserTable.Execute(insertOperation);
+                }
+                else
+                {
+                    currentUser.UserId = userId;
+                    currentUser.UserName = userName;
+                    currentUser.BotId = botId;
+                    currentUser.BotName = botName;
+                    currentUser.ServiceURL = serviceUrl;
+                    currentUser.Gmtplus = gmtPlus;
+                    currentUser.ChannelId = channelId;
+
+                    UpdateUser(currentUser);
+                }
+                
             }
             catch (Exception e)
             {

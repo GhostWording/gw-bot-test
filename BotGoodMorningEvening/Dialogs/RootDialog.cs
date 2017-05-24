@@ -203,7 +203,7 @@ namespace BotGoodMorningEvening.Dialogs
             //{
                 // Get the cache
                 //var user = db.UserResgistereds.FirstOrDefault(u => u.UserId == context.Activity.From.Id);
-                var user = UserStorageManager.GetUser(context.Activity.From.Id);
+                var user = UserStorageManager.GetUser(this.UserId);
 
                 cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
 
