@@ -45,18 +45,8 @@ namespace BotGoodMorningEvening.Dialogs
                 var currentuser = UserStorageManager.GetUser(this.UserId);
                 if (currentuser != null)
                     currentuser.ResumptionCookie = resumptionCookie;
-                UserStorageManager.UpdateUser(currentuser);
 
-                //using (var db = new UserContext())
-                //{
-                //    var user = db.UserResgistereds.Find(UserId);
-                //    if (user != null)
-                //    {
-                //        user.ChannelId = context.Activity.ChannelId;
-                //        user.ResumptionCookie = resumptionCookie;
-                //        db.SaveChanges();
-                //    }
-                //}
+                UserStorageManager.UpdateUser(currentuser);
 
                 var text = message.Text ?? "Good Morning";
                 // Find a card
@@ -198,51 +188,45 @@ namespace BotGoodMorningEvening.Dialogs
         {
             Card newCard;
 
-            // TODO: Get the cache out of dialog
-            //using (var db = new UserContext())
-            //{
-                // Get the cache
-                //var user = db.UserResgistereds.FirstOrDefault(u => u.UserId == context.Activity.From.Id);
-                var user = UserStorageManager.GetUser(this.UserId);
+            // Get the cache
+            var user = UserStorageManager.GetUser(this.UserId);
 
-                cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
+            cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
 
-                // Get another card
-                if (cardListReference.ContainsKey(intentionId))
+            // Get another card
+            if (cardListReference.ContainsKey(intentionId))
+            {
+                var entry = cardListReference[intentionId];
+                var newIndex = entry.Item2 + 1;
+                if (newIndex < entry.Item3.Count)
                 {
-                    var entry = cardListReference[intentionId];
-                    var newIndex = entry.Item2 + 1;
-                    if (newIndex < entry.Item3.Count)
-                    {
-                        newCard = entry.Item3[newIndex];
-                        cardListReference[intentionId] =
-                            new Tuple<int, int, List<Card>>(entry.Item1, newIndex, entry.Item3);
-                    }
-                    else
-                    {
-                        var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, entry.Item1);
-                        cardListReference[intentionId] = new Tuple<int, int, List<Card>>(hashcode, 0, cards);
-                        newCard = cards[0];
-                    }
+                    newCard = entry.Item3[newIndex];
+                    cardListReference[intentionId] =
+                        new Tuple<int, int, List<Card>>(entry.Item1, newIndex, entry.Item3);
                 }
                 else
                 {
-                    var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, 0);
-                    cardListReference.Add(intentionId, new Tuple<int, int, List<Card>>(hashcode, 0, cards));
+                    var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, entry.Item1);
+                    cardListReference[intentionId] = new Tuple<int, int, List<Card>>(hashcode, 0, cards);
                     newCard = cards[0];
                 }
+            }
+            else
+            {
+                var (hashcode, cards) = CardHelper.GetIntentionCards(intentionId, 0);
+                cardListReference.Add(intentionId, new Tuple<int, int, List<Card>>(hashcode, 0, cards));
+                newCard = cards[0];
+            }
 
-                // Send the card
-                await SendCard(context, newCard);
+            // Send the card
+            await SendCard(context, newCard);
 
-                // Save the cache
-                if (user != null)
-                {
-                    user.CardsCache = JsonConvert.SerializeObject(cardListReference);
-                    UserStorageManager.UpdateUser(user);
-                    //db.SaveChanges();
-                }
-            //}
+            // Save the cache
+            if (user != null)
+            {
+                user.CardsCache = JsonConvert.SerializeObject(cardListReference);
+                UserStorageManager.UpdateUser(user);
+            }
 
             // Wait for a response
             context.Wait(State1);

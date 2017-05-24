@@ -26,9 +26,6 @@ namespace BotGoodMorningEvening.Controllers
             if (activity.Type == ActivityTypes.Message)
             {
                 var timezone = findTimeZone(activity.From.Id);
-                //var userId = AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
-                //    activity.Recipient.Name, activity.ServiceUrl, timezone,
-                //    activity.ChannelId);
 
                 UserStorageManager.AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
                     activity.Recipient.Name, activity.ServiceUrl, timezone,
@@ -64,46 +61,6 @@ namespace BotGoodMorningEvening.Controllers
             catch (Exception e)
             {
                 return null;
-            }
-        }
-
-
-
-        private static Guid AddOrUpdateUser(string userId, string userName, string botId, string botName,
-            string serviceUrl, int? gmtPlus, string channelId)
-        {
-            using (var db = new UserContext())
-            {
-                var result = db.UserResgistereds.FirstOrDefault(x => x.UserId == userId && x.UserName == userName);
-
-                // Update
-                if (result != null)
-                {
-                    result.BotId = botId;
-                    result.BotName = botName;
-                    result.ServiceURL = serviceUrl;
-                    result.Gmtplus = gmtPlus ?? 0;
-                    result.ChannelId = channelId;
-                }
-                else
-                {
-                    // Or add
-                    result = new UserResgistered
-                    {
-                        ID = Guid.NewGuid(),
-                        UserId = userId,
-                        UserName = userName,
-                        BotId = botId,
-                        BotName = botName,
-                        ServiceURL = serviceUrl,
-                        Gmtplus = gmtPlus,
-                        ChannelId = channelId
-                    };
-                    db.UserResgistereds.Add(result);
-                }
-                db.SaveChanges();
-
-                return result.ID;
             }
         }
 

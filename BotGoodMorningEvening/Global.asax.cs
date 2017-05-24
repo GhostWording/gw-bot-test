@@ -13,10 +13,6 @@ namespace BotGoodMorningEvening
         protected void Application_Start()
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
-
-            var configuration = new Migrations.Configuration();
-            var migrator = new DbMigrator(configuration);
-            migrator.Update();
         }
     }
 }
