@@ -13,7 +13,7 @@ namespace BotGoodMorningEvening.Helpers
 
         public static string GoodMorningIntentionId { get; } = "030FD0";
 
-        public static string GoodEveningIntentionId { get; } = "d392C1";
+        public static string GoodEveningIntentionId { get; } = "D392C1";
 
         public static string GetTitle(string intentionId)
         {

@@ -237,7 +237,7 @@ namespace BotGoodMorningEvening.Dialogs
             // Save the cache
             if (user != null)
             {
-                user.CardsCache = JsonConvert.SerializeObject(cardListReference);
+                user.CardsCache = JsonConvert.SerializeObject(cardListReference,new JsonSerializerSettings { ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver() });
                 UserStorageManager.UpdateUser(user);
             }
 
