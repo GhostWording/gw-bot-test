@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BotGoodMorningEvening.Helpers
 {
@@ -31,13 +32,13 @@ namespace BotGoodMorningEvening.Helpers
             UserTable.CreateIfNotExistsAsync();
         }
 
-        public static void AddOrUpdateUser(string userId, string userName, string botId, string botName,
+        public static async void AddOrUpdateUser(string userId, string userName, string botId, string botName,
             string serviceUrl, int? gmtPlus, string channelId)
         {
             try
             {
                 //if current user exist in table storage, we update user's data esle we create the new user
-                var currentUser = GetUser(userId);
+                var currentUser = await GetUser(userId);
                 if(currentUser == null)
                 {
                     // Create a user entity.
@@ -54,7 +55,7 @@ namespace BotGoodMorningEvening.Helpers
 
                     // insert user or replace
                     TableOperation insertOperation = TableOperation.Insert(currentUser);
-                    UserTable.Execute(insertOperation);
+                    await UserTable.ExecuteAsync(insertOperation);
                 }
                 else
                 {
@@ -82,7 +83,7 @@ namespace BotGoodMorningEvening.Helpers
             {
                 //get All users from "botGmePartitionKey" partition Key
                 TableQuery<UserEntity> query = new TableQuery<UserEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, botGmePartitionKey));
-                return UserTable.ExecuteQuery(query).ToList<UserEntity>();
+                return  UserTable.ExecuteQuery(query).ToList<UserEntity>();
 
             }
             catch (Exception e)
@@ -91,7 +92,7 @@ namespace BotGoodMorningEvening.Helpers
             }
         }
 
-        public static UserEntity GetUser(string userId)
+        public static async Task<UserEntity> GetUser(string userId)
         {
             try
             {
@@ -99,7 +100,7 @@ namespace BotGoodMorningEvening.Helpers
                 TableOperation retrieveOperation = TableOperation.Retrieve<UserEntity>(botGmePartitionKey,userId);
 
                 // Execute the retrieve operation.
-                TableResult retrievedResult = UserTable.Execute(retrieveOperation);
+                TableResult retrievedResult = await UserTable.ExecuteAsync(retrieveOperation);
 
                 // Print the phone number of the result.
                 if (retrievedResult.Result != null)
@@ -116,7 +117,7 @@ namespace BotGoodMorningEvening.Helpers
                 return null;
             }
         }
-        public static void UpdateUser (UserEntity user)
+        public async static void UpdateUser (UserEntity user)
         {
             try
             {
@@ -126,7 +127,7 @@ namespace BotGoodMorningEvening.Helpers
                     TableOperation updateOperation = TableOperation.Replace(user);
 
                     // Execute the operation.
-                    UserTable.Execute(updateOperation);
+                    await UserTable.ExecuteAsync(updateOperation);
                 }
             }
             catch (Exception e)

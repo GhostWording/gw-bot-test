@@ -52,13 +52,13 @@ namespace BotGoodMorningEvening.Dialogs
             }
         }
 
-        private void UpdateResumeCookie(IMessageActivity message)
+        private async void UpdateResumeCookie(IMessageActivity message)
         {
             try
             {
                 var resumptionCookie = new ResumptionCookie(message).GZipSerialize();
                 //var resumptionCookie = JsonConvert.SerializeObject(new ConversationReference(context.Activity.Id));
-                var currentuser = UserStorageManager.GetUser(this.UserId);
+                var currentuser = await UserStorageManager.GetUser(this.UserId);
                 if (currentuser != null)
                 {
                     currentuser.ResumptionCookie = resumptionCookie;
@@ -202,7 +202,7 @@ namespace BotGoodMorningEvening.Dialogs
             Card newCard;
 
             // Get the cache
-            var user = UserStorageManager.GetUser(this.UserId);
+            var user = await UserStorageManager.GetUser(this.UserId);
 
             cardListReference = !string.IsNullOrEmpty(user?.CardsCache) ? JsonConvert.DeserializeObject<Dictionary<string, Tuple<int, int, List<Card>>>>(user.CardsCache) : new Dictionary<string, Tuple<int, int, List<Card>>>();
 
