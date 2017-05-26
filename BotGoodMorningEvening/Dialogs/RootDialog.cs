@@ -120,7 +120,7 @@ namespace BotGoodMorningEvening.Dialogs
             }
             catch (Exception)
             {
-                await context.PostAsync("Sorry, but I have an issue during state 1 action");
+                await context.PostAsync("Sorry, but I have an issue to understand your action, please type your message again");
             }
         }
 
@@ -157,7 +157,7 @@ namespace BotGoodMorningEvening.Dialogs
                     else
                     {
                         await context.PostAsync(
-                            "It seems you didn't click on a quick reply and you just typed a response.");
+                            "It seems you didn't click on a quick reply and you just typed a response, please type your message again.");
                         context.Wait(MessageReceivedAsync);
                     }
                 }
@@ -169,7 +169,7 @@ namespace BotGoodMorningEvening.Dialogs
             }
             catch (Exception)
             {
-                await context.PostAsync("Sorry, but I have an issue during state 2 action");
+                await context.PostAsync("orry, but I have an issue to understand your action, please type your message again");
             }
         }
 
@@ -297,7 +297,7 @@ namespace BotGoodMorningEvening.Dialogs
             }
             catch (Exception)
             {
-                await context.PostAsync("Sorry, my send card action have an issue");
+                await context.PostAsync("Sorry, my send card action have an issue. Please type a new message");
             }
         }
     }
