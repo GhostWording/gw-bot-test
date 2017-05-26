@@ -169,7 +169,7 @@ namespace BotGoodMorningEvening.Dialogs
             }
             catch (Exception)
             {
-                await context.PostAsync("orry, but I have an issue to understand your action, please type your message again");
+                await context.PostAsync("Sorry, but I have an issue to understand your action, please type your message again");
             }
         }
 
