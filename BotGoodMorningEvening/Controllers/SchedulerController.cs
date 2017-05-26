@@ -30,7 +30,7 @@ namespace BotGoodMorningEvening.Controllers
 
             // Send good evening
             var eveningUsers = from u in users
-                               where DateTime.UtcNow.Hour + u.Gmtplus >= 19 && DateTime.UtcNow.Hour + u.Gmtplus < 20
+                               where DateTime.UtcNow.Hour + u.Gmtplus >= 22 && DateTime.UtcNow.Hour + u.Gmtplus < 23
                                select u;
 
             intentionId = CardHelper.GoodEveningIntentionId;
