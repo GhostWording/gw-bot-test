@@ -23,6 +23,8 @@ namespace BotGoodMorningEvening.Controllers
         {
             if (activity.Type == ActivityTypes.Message)
             {
+                await RespondingMessage(activity);
+
                 var timezone = findTimeZone(activity.From.Id);
 
                 UserStorageManager.AddOrUpdateUser(activity.From.Id, activity.From.Name, activity.Recipient.Id,
@@ -37,6 +39,15 @@ namespace BotGoodMorningEvening.Controllers
             }
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
+        }
+
+        private static async Task RespondingMessage(Activity activity)
+        {
+            //bot is responding message
+            var connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+            Activity responding = activity.CreateReply();
+            responding.Type = ActivityTypes.Typing;
+            await connector.Conversations.ReplyToActivityAsync(responding);
         }
 
         private static int? findTimeZone(string userId)
