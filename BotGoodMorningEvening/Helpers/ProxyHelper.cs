@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace BotGoodMorningEvening.Helpers
 {
@@ -61,6 +62,7 @@ namespace BotGoodMorningEvening.Helpers
 
             if (currentMethod != HttpMethod.Get)
                 AddBodyParameters(parameters, request.GetRequestStream());
+
             return request;
         }
 

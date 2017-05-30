@@ -269,6 +269,11 @@ namespace BotGoodMorningEvening.Dialogs
                 var title = CardHelper.GetTitle(card.IntentionId);
                 await context.PostAsync(title);
 
+                //send a feeback to user
+                var activity = context.MakeMessage();
+                activity.Type = ActivityTypes.Typing;
+                await context.PostAsync(activity);
+
                 // Image
                 var imageMessage = context.MakeMessage();
                 imageMessage.Attachments.Add(new Attachment { ContentType = "image/jpg", ContentUrl = card.ImageLink });
@@ -297,7 +302,7 @@ namespace BotGoodMorningEvening.Dialogs
             }
             catch (Exception)
             {
-                await context.PostAsync("Sorry, my send card action have an issue. Please type a new message");
+                await context.PostAsync("We don't understand your request. Please type a new message");
             }
         }
     }
