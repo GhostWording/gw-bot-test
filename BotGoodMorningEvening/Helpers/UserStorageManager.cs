@@ -26,7 +26,7 @@ namespace BotGoodMorningEvening.Helpers
             tableClient = storageAccount.CreateCloudTableClient();
 
             // Create User Table
-            UserTable = tableClient.GetTableReference("User");
+            UserTable = tableClient.GetTableReference("BotGMEdata");
 
             // Create the table if it doesn't exist.
             UserTable.CreateIfNotExistsAsync();
